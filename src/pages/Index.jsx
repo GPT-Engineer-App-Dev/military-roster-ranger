@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Edit, Save } from "lucide-react";
 
 const Index = () => {
   const [personnel, setPersonnel] = useState([]);
   const [newPerson, setNewPerson] = useState({ name: '', rank: '', unit: '', deploymentDate: '', returnDate: '' });
+  const [editingId, setEditingId] = useState(null);
 
   const addPerson = () => {
     if (newPerson.name && newPerson.rank && newPerson.unit && newPerson.deploymentDate) {
@@ -17,6 +18,24 @@ const Index = () => {
 
   const removePerson = (id) => {
     setPersonnel(personnel.filter(person => person.id !== id));
+  };
+
+  const startEditing = (person) => {
+    setEditingId(person.id);
+    setNewPerson({ ...person });
+  };
+
+  const saveEdit = () => {
+    setPersonnel(personnel.map(person => 
+      person.id === editingId ? { ...newPerson, id: editingId } : person
+    ));
+    setEditingId(null);
+    setNewPerson({ name: '', rank: '', unit: '', deploymentDate: '', returnDate: '' });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setNewPerson({ name: '', rank: '', unit: '', deploymentDate: '', returnDate: '' });
   };
 
   return (
@@ -53,9 +72,20 @@ const Index = () => {
         />
       </div>
       
-      <Button onClick={addPerson} className="mb-6">
-        <Plus className="mr-2 h-4 w-4" /> Add Personnel
-      </Button>
+      {editingId ? (
+        <div className="flex gap-2 mb-6">
+          <Button onClick={saveEdit}>
+            <Save className="mr-2 h-4 w-4" /> Save Changes
+          </Button>
+          <Button variant="outline" onClick={cancelEdit}>
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <Button onClick={addPerson} className="mb-6">
+          <Plus className="mr-2 h-4 w-4" /> Add Personnel
+        </Button>
+      )}
 
       <Table>
         <TableHeader>
@@ -77,9 +107,14 @@ const Index = () => {
               <TableCell>{person.deploymentDate}</TableCell>
               <TableCell>{person.returnDate || 'N/A'}</TableCell>
               <TableCell>
-                <Button variant="destructive" size="sm" onClick={() => removePerson(person.id)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => startEditing(person)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => removePerson(person.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
